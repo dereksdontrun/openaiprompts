@@ -132,6 +132,11 @@ class AdminOpenaiPromptsController extends ModuleAdminController
         foreach ($ids as $id) {
             $prompt = new OpenAIPrompt((int)$id);
             if (Validate::isLoadedObject($prompt)) {
+                 if ($prompt->active) {
+                    $this->errors[] = '❌ No se puede eliminar un prompt activo. Por favor, desactívalo primero.';
+                    return false;
+                }
+
                 $log = date('Y-m-d H:i:s') . " | Prompt eliminado (ID $id):\n";
                 $log .= "Grupo: {$prompt->grupo} | Nombre: {$prompt->nombre}\n";
                 $log .= "Contenido:\n" . $prompt->prompt . "\n\n";
@@ -308,6 +313,12 @@ class AdminOpenaiPromptsController extends ModuleAdminController
         $id = (int)Tools::getValue('id_openai_prompt');
         $prompt = new OpenAIPrompt($id);
         $nuevoPrompt = Tools::getValue('prompt');
+
+        //guardamos por seguridad cada versión antes de ser actualizada
+        $log = date('Y-m-d H:i:s') . " | Prompt editado (ID $id):\n";
+        $log .= "Grupo: {$prompt->grupo} | Nombre: {$prompt->nombre}\n";
+        $log .= "Contenido:\n" . $prompt->prompt . "\n\n";
+        file_put_contents(_PS_MODULE_DIR_ . 'openaiprompts/logs/prompt_update_log.txt', $log, FILE_APPEND);
 
         if ($prompt->prompt !== $nuevoPrompt) {
             $prompt->version_anterior = $prompt->prompt;

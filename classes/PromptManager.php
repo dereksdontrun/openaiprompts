@@ -12,13 +12,17 @@ class PromptManager
             WHERE grupo = '".pSQL($grupo)."'
               AND nombre = '".pSQL($nombre)."'
               AND active = 1
-              AND deleted = 0
-            LIMIT 1
+              AND deleted = 0            
         ";
 
         $fila = Db::getInstance()->getRow($sql);
 
         if (!$fila) {
+            $log = date('Y-m-d H:i:s') . " | Error obteniendo Prompt:\n";
+            $log .= "Grupo: {$grupo} | Nombre: {$nombre}\n";    
+            $log .= "SQL:\n" . $sql . "\n\n";        
+            file_put_contents(_PS_MODULE_DIR_ . 'openaiprompts/logs/prompt_error_log.txt', $log, FILE_APPEND);
+
             throw new Exception("No se encontró el prompt '$nombre' en el grupo '$grupo'.");
         }
 
